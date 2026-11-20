@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Marks')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: studentSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('My Marks')}"></header>
+
+        <div class="content">
+            <section class="stats-grid two">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div>
+                        <p class="stat-label">Average Marks</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(averageMarks, 1, 1)}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="bi bi-journal-check"></i></div>
+                    <div>
+                        <p class="stat-label">Subjects Graded</p>
+                        <p class="stat-value" th:text="${#lists.size(marksList)}">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="card">
+                <div class="card-header"><h3><i class="bi bi-journal-text"></i> Subject-wise Marks</h3></div>
+                <div th:if="${#lists.isEmpty(marksList)}" class="empty-state small">
+                    <i class="bi bi-hourglass-split"></i><p>No marks have been entered yet.</p>
+                </div>
+                <div class="table-wrapper" th:unless="${#lists.isEmpty(marksList)}">
+                    <table class="table">
+                        <thead>
+                        <tr><th>Code</th><th>Subject</th><th>Marks</th><th>Score</th><th>Grade</th><th>Result</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="m : ${marksList}">
+                            <td><strong th:text="${m.subject.code}">CS</strong></td>
+                            <td th:text="${m.subject.name}">Subject</td>
+                            <td th:text="${m.marksObtained} + ' / 100'">0</td>
+                            <td>
+                                <div class="progress"><div class="progress-bar" th:classappend="${!m.passed} ? 'low'"
+                                     th:style="'width:' + ${m.marksObtained} + '%'"></div></div>
+                            </td>
+                            <td><span class="badge" th:classappend="${m.passed} ? 'badge-success' : 'badge-danger'" th:text="${m.grade}">A</span></td>
+                            <td th:text="${m.passed} ? 'Pass' : 'Fail'">Pass</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="muted grade-key">Grade scale: A+ ≥ 90 • A ≥ 80 • B ≥ 70 • C ≥ 60 • D ≥ 50 • F &lt; 50</p>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Teacher Dashboard')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Dashboard')}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <!-- Statistic cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Total Students</p>
+                        <p class="stat-value" th:text="${stats.totalStudents}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="bi bi-book-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Total Subjects</p>
+                        <p class="stat-value" th:text="${stats.totalSubjects}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-calendar-check-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Average Attendance</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(stats.averageAttendance, 1, 1)} + '%'">0%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div>
+                        <p class="stat-label">Average Marks</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(stats.averageMarks, 1, 1)}">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts -->
+            <section class="grid-2-1">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-bar-chart-fill"></i> Average Marks by Subject</h3>
+                    </div>
+                    <div class="chart-box"><canvas id="marksChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-pie-chart-fill"></i> Attendance Overview</h3>
+                    </div>
+                    <div class="chart-box"><canvas id="attendanceChart"></canvas></div>
+                </div>
+            </section>
+
+            <section class="grid-2">
+                <!-- Low attendance -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-exclamation-circle-fill"></i> Attendance Below 75%</h3>
+                        <a th:href="@{/teacher/attendance}" class="link">View all</a>
+                    </div>
+                    <div th:if="${#lists.isEmpty(lowAttendance)}" class="empty-state small">
+                        <i class="bi bi-emoji-smile"></i>
+                        <p>All students have 75% or more attendance.</p>
+                    </div>
+                    <ul class="simple-list" th:unless="${#lists.isEmpty(lowAttendance)}">
+                        <li th:each="row : ${lowAttendance}">
+                            <span class="avatar small" th:text="${row.student.initials}">AB</span>
+                            <div class="grow">
+                                <strong th:text="${row.student.fullName}">Name</strong>
+                                <small class="muted" th:text="${row.student.studentId}">STU001</small>
+                            </div>
+                            <span class="badge badge-danger"
+                                  th:text="${#numbers.formatDecimal(row.percentage, 1, 1)} + '%'">70%</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Recent announcements -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-megaphone-fill"></i> Recent Announcements</h3>
+                        <a th:href="@{/teacher/announcements}" class="link">Manage</a>
+                    </div>
+                    <div th:if="${#lists.isEmpty(recentAnnouncements)}" class="empty-state small">
+                        <i class="bi bi-inbox"></i>
+                        <p>No announcements yet.</p>
+                    </div>
+                    <div class="announcement-item" th:each="a : ${recentAnnouncements}">
+                        <h4 th:text="${a.title}">Title</h4>
+                        <p th:text="${a.message}">Message</p>
+                        <small class="muted">
+                            <i class="bi bi-clock"></i>
+                            <span th:text="${#temporals.format(a.createdAt, 'dd MMM yyyy, hh:mm a')}">date</span>
+                        </small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick actions -->
+            <section class="card">
+                <div class="card-header"><h3><i class="bi bi-lightning-charge-fill"></i> Quick Actions</h3></div>
+                <div class="quick-actions">
+                    <a th:href="@{/teacher/students/new}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> Add Student</a>
+                    <a th:href="@{/teacher/attendance}" class="btn btn-success"><i class="bi bi-calendar-check"></i> Mark Attendance</a>
+                    <a th:href="@{/teacher/marks}" class="btn btn-warning"><i class="bi bi-pencil-square"></i> Enter Marks</a>
+                    <a th:href="@{/teacher/announcements}" class="btn btn-outline"><i class="bi bi-megaphone"></i> New Announcement</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const marksLabels = /*[[${chartLabels}]]*/ [];
+    const marksValues = /*[[${chartValues}]]*/ [];
+    const presentCount = /*[[${presentCount}]]*/ 0;
+    const absentCount = /*[[${absentCount}]]*/ 0;
+
+    if (window.Chart) {
+        new Chart(document.getElementById('marksChart'), {
+            type: 'bar',
+            data: {
+                labels: marksLabels,
+                datasets: [{ label: 'Average marks', data: marksValues, backgroundColor: '#2563eb', borderRadius: 6 }]
+            },
+            options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('attendanceChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Absent'],
+                datasets: [{ data: [presentCount, absentCount], backgroundColor: ['#16a34a', '#ef4444'] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+</script>
+</body>
+</html>

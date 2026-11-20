@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Students')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Students')}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="card">
+                <div class="card-header wrap">
+                    <h3><i class="bi bi-people-fill"></i> All Students
+                        <span class="badge badge-info" th:text="${#lists.size(students)}">0</span></h3>
+
+                    <div class="toolbar">
+                        <!-- Server-side search (GET /teacher/students?keyword=...) -->
+                        <form th:action="@{/teacher/students}" method="get" class="search-form">
+                            <i class="bi bi-search"></i>
+                            <input type="text" name="keyword" th:value="${keyword}"
+                                   placeholder="Search by name, ID, email or department">
+                            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                            <a th:if="${keyword != ''}" th:href="@{/teacher/students}" class="btn btn-outline btn-sm">Clear</a>
+                        </form>
+                        <a th:href="@{/teacher/students/new}" class="btn btn-primary">
+                            <i class="bi bi-person-plus-fill"></i> Add Student</a>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(students)}" class="empty-state">
+                    <i class="bi bi-search"></i>
+                    <p th:if="${keyword != ''}">No students match "<span th:text="${keyword}"></span>".</p>
+                    <p th:if="${keyword == ''}">No students yet. Click "Add Student" to create one.</p>
+                </div>
+
+                <div class="table-wrapper" th:unless="${#lists.isEmpty(students)}">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Student ID</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Phone</th>
+                            <th class="text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="s : ${students}">
+                            <td>
+                                <div class="person">
+                                    <span class="avatar" th:text="${s.initials}">AB</span>
+                                    <div>
+                                        <strong th:text="${s.fullName}">Name</strong>
+                                        <small class="muted" th:text="${s.email}">email</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-info" th:text="${s.studentId}">STU001</span></td>
+                            <td th:text="${s.department}">Dept</td>
+                            <td th:text="'Year ' + ${s.year}">Year 1</td>
+                            <td th:text="${s.phone}">9999999999</td>
+                            <td class="text-right">
+                                <div class="actions">
+                                    <a th:href="@{/teacher/students/{id}(id=${s.id})}" class="icon-btn view" title="View">
+                                        <i class="bi bi-eye"></i></a>
+                                    <a th:href="@{/teacher/students/{id}/edit(id=${s.id})}" class="icon-btn edit" title="Edit">
+                                        <i class="bi bi-pencil"></i></a>
+                                    <form th:action="@{/teacher/students/{id}/delete(id=${s.id})}" method="post"
+                                          th:attr="data-confirm='Delete ' + ${s.fullName} + '? Their marks, attendance and login will also be removed.'">
+                                        <button type="submit" class="icon-btn delete" title="Delete">
+                                            <i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

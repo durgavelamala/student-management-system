@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Profile')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: studentSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('My Profile')}"></header>
+
+        <div class="content">
+            <div class="card profile-wide">
+                <div class="profile-header">
+                    <span class="avatar large" th:text="${student.initials}">AB</span>
+                    <div>
+                        <h2 th:text="${student.fullName}">Name</h2>
+                        <span class="badge badge-info" th:text="${student.studentId}">STU001</span>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-person-vcard"></i> Student ID</span>
+                        <span class="info-value" th:text="${student.studentId}">STU001</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-person"></i> Full Name</span>
+                        <span class="info-value" th:text="${student.fullName}">Name</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+                        <span class="info-value" th:text="${student.email}">email</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-telephone"></i> Phone</span>
+                        <span class="info-value" th:text="${student.phone}">phone</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-building"></i> Department</span>
+                        <span class="info-value" th:text="${student.department}">dept</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-calendar3"></i> Year</span>
+                        <span class="info-value" th:text="'Year ' + ${student.year}">Year</span>
+                    </div>
+                </div>
+                <p class="muted"><i class="bi bi-info-circle"></i> To correct any detail, please contact your teacher.</p>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

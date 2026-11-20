@@ -1,0 +1,8 @@
+# .dockerignore - files Docker should NOT send to the build.
+# The image only needs the JAR built by Maven, so we ignore
+# everything (*) and then allow (!) just that one file.
+# This keeps the build fast and keeps source code, .git and
+# secrets (.env) out of the image.
+
+*
+!target/student-management-system.jar

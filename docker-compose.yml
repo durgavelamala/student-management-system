@@ -1,0 +1,59 @@
+# ============================================================
+# Docker Compose - runs the application AND MySQL together.
+#
+#   mvn clean package            (build the JAR first)
+#   docker compose up -d --build (start everything)
+#
+# Values like ${DB_PASSWORD:-sms_pass} are read from a .env file
+# (copy .env.example to .env); the text after ":-" is the default.
+# ============================================================
+
+services:
+
+  # ---------- MySQL database ----------
+  mysql:
+    image: mysql:8.0
+    container_name: sms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DB_NAME:-student_db}
+      MYSQL_USER: ${DB_USERNAME:-sms_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-sms_pass}
+    ports:
+      # host port 3307 -> container port 3306 (3307 avoids clashing with a MySQL already installed on your PC)
+      - "3307:3306"
+    volumes:
+      # Named volume: data survives "docker compose down" and container restarts
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # The app waits until MySQL answers this check (127.0.0.1 forces a real TCP connection)
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ---------- Spring Boot application ----------
+  app:
+    build: .
+    image: student-management-system:latest
+    container_name: sms-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # "mysql" is the service name above - containers reach each other by service name, not localhost
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-student_db}
+      DB_USERNAME: ${DB_USERNAME:-sms_user}
+      DB_PASSWORD: ${DB_PASSWORD:-sms_pass}
+    ports:
+      # host port 8081 -> container port 8080 (8080 on the PC is usually taken by Jenkins)
+      # change APP_PORT in .env to use another port
+      - "${APP_PORT:-8081}:8080"
+
+volumes:
+  mysql_data:

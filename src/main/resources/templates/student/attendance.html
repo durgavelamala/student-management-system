@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Attendance')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: studentSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('My Attendance')}"></header>
+
+        <div class="content">
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-percent"></i></div>
+                    <div>
+                        <p class="stat-label">Overall Attendance</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(attendance.percentage, 1, 1)} + '%'">0%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="bi bi-check-circle-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Present</p>
+                        <p class="stat-value" th:text="${attendance.presentClasses}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="bi bi-x-circle-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Absent</p>
+                        <p class="stat-value" th:text="${attendance.absentClasses}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="bi bi-calendar3"></i></div>
+                    <div>
+                        <p class="stat-label">Total Classes</p>
+                        <p class="stat-value" th:text="${attendance.totalClasses}">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <div th:if="${attendance.low}" class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>Your attendance is below the required 75%.</span>
+            </div>
+
+            <section class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h3><i class="bi bi-book"></i> Subject-wise Attendance</h3></div>
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead><tr><th>Subject</th><th>Attended</th><th>Percentage</th></tr></thead>
+                            <tbody>
+                            <tr th:each="row : ${subjectWise}">
+                                <td><strong th:text="${row.subject.code}">CS</strong> <span class="muted" th:text="${row.subject.name}"></span></td>
+                                <td th:text="${row.presentClasses} + ' / ' + ${row.totalClasses}">0/0</td>
+                                <td>
+                                    <div class="progress"><div class="progress-bar" th:classappend="${row.low} ? 'low'"
+                                         th:style="'width:' + ${row.percentage} + '%'"></div></div>
+                                    <small th:text="${#numbers.formatDecimal(row.percentage, 1, 1)} + '%'">0%</small>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Attendance Records</h3>
+                        <div class="search-form small">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="Filter records" data-table-filter="recordsTable">
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(records)}" class="empty-state small"><p>No attendance records yet.</p></div>
+                    <div class="table-wrapper scroll" th:unless="${#lists.isEmpty(records)}">
+                        <table class="table" id="recordsTable">
+                            <thead><tr><th>Date</th><th>Subject</th><th>Status</th></tr></thead>
+                            <tbody>
+                            <tr th:each="r : ${records}">
+                                <td th:text="${#temporals.format(r.attendanceDate, 'dd MMM yyyy (EEE)')}">date</td>
+                                <td th:text="${r.subject.code} + ' - ' + ${r.subject.name}">subject</td>
+                                <td>
+                                    <span th:if="${r.present}" class="badge badge-success">Present</span>
+                                    <span th:unless="${r.present}" class="badge badge-danger">Absent</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

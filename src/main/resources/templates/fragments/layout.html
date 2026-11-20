@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--
+    Reusable page pieces. Other pages include them with th:replace, for example:
+    <head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+-->
+
+<!-- ===== <head> with CSS and icon library ===== -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | Student Management System'">Student Management System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+<!-- ===== Teacher sidebar ===== -->
+<aside th:fragment="teacherSidebar" class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>EduManage</span>
+    </div>
+    <p class="sidebar-role">Teacher Panel</p>
+    <nav class="sidebar-nav">
+        <a th:href="@{/teacher/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a th:href="@{/teacher/students}" th:classappend="${activePage == 'students'} ? 'active'">
+            <i class="bi bi-people-fill"></i> Students</a>
+        <a th:href="@{/teacher/attendance}" th:classappend="${activePage == 'attendance'} ? 'active'">
+            <i class="bi bi-calendar-check-fill"></i> Attendance</a>
+        <a th:href="@{/teacher/marks}" th:classappend="${activePage == 'marks'} ? 'active'">
+            <i class="bi bi-journal-text"></i> Marks</a>
+        <a th:href="@{/teacher/announcements}" th:classappend="${activePage == 'announcements'} ? 'active'">
+            <i class="bi bi-megaphone-fill"></i> Announcements</a>
+    </nav>
+    <form th:action="@{/logout}" method="post" class="sidebar-logout">
+        <button type="submit"><i class="bi bi-box-arrow-left"></i> Logout</button>
+    </form>
+</aside>
+
+<!-- ===== Student sidebar ===== -->
+<aside th:fragment="studentSidebar" class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>EduManage</span>
+    </div>
+    <p class="sidebar-role">Student Portal</p>
+    <nav class="sidebar-nav">
+        <a th:href="@{/student/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'active'">
+            <i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a th:href="@{/student/profile}" th:classappend="${activePage == 'profile'} ? 'active'">
+            <i class="bi bi-person-badge-fill"></i> My Profile</a>
+        <a th:href="@{/student/marks}" th:classappend="${activePage == 'marks'} ? 'active'">
+            <i class="bi bi-journal-text"></i> My Marks</a>
+        <a th:href="@{/student/attendance}" th:classappend="${activePage == 'attendance'} ? 'active'">
+            <i class="bi bi-calendar-check-fill"></i> My Attendance</a>
+        <a th:href="@{/student/announcements}" th:classappend="${activePage == 'announcements'} ? 'active'">
+            <i class="bi bi-megaphone-fill"></i> Announcements</a>
+    </nav>
+    <form th:action="@{/logout}" method="post" class="sidebar-logout">
+        <button type="submit"><i class="bi bi-box-arrow-left"></i> Logout</button>
+    </form>
+</aside>
+
+<!-- ===== Top bar with page title and logged-in user ===== -->
+<header th:fragment="topbar(pageTitle)" class="topbar">
+    <div class="topbar-left">
+        <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <h1 th:text="${pageTitle}">Page</h1>
+    </div>
+    <div class="topbar-user">
+        <span class="user-avatar"><i class="bi bi-person-fill"></i></span>
+        <div class="user-info">
+            <strong sec:authentication="name">user</strong>
+            <small sec:authorize="hasRole('TEACHER')">Teacher</small>
+            <small sec:authorize="hasRole('STUDENT')">Student</small>
+        </div>
+    </div>
+</header>
+
+<!-- ===== Success / error messages ===== -->
+<div th:fragment="alerts">
+    <div th:if="${success}" class="alert alert-success" data-autohide>
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${success}">Saved</span>
+        <button type="button" class="alert-close" aria-label="Close">&times;</button>
+    </div>
+    <div th:if="${error}" class="alert alert-error">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${error}">Error</span>
+        <button type="button" class="alert-close" aria-label="Close">&times;</button>
+    </div>
+</div>
+
+<!-- ===== Scripts shared by all pages ===== -->
+<th:block th:fragment="scripts">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <script th:src="@{/js/app.js}"></script>
+</th:block>
+
+</body>
+</html>

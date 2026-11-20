@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Announcements')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Announcements')}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <section class="grid-1-2">
+                <!-- New announcement form -->
+                <div class="card">
+                    <div class="card-header"><h3><i class="bi bi-plus-circle-fill"></i> New Announcement</h3></div>
+                    <form th:action="@{/teacher/announcements}" th:object="${announcement}" method="post" class="form" novalidate>
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" id="title" th:field="*{title}" maxlength="150" placeholder="e.g. Lab exam schedule"
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">
+                            <small class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" th:field="*{message}" rows="6" maxlength="1000"
+                                      placeholder="Write the announcement for students..."
+                                      th:classappend="${#fields.hasErrors('message')} ? 'is-invalid'"></textarea>
+                            <small class="field-error" th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block"><i class="bi bi-send-fill"></i> Publish</button>
+                    </form>
+                </div>
+
+                <!-- Existing announcements -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-megaphone-fill"></i> Published Announcements</h3>
+                        <span class="badge badge-info" th:text="${#lists.size(announcements)}">0</span>
+                    </div>
+                    <div th:if="${#lists.isEmpty(announcements)}" class="empty-state small">
+                        <i class="bi bi-inbox"></i><p>No announcements yet.</p>
+                    </div>
+                    <div class="announcement-item" th:each="a : ${announcements}">
+                        <div class="announcement-head">
+                            <h4 th:text="${a.title}">Title</h4>
+                            <form th:action="@{/teacher/announcements/{id}/delete(id=${a.id})}" method="post"
+                                  data-confirm="Delete this announcement?">
+                                <button type="submit" class="icon-btn delete" title="Delete"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                        <p th:text="${a.message}">Message</p>
+                        <small class="muted">
+                            <i class="bi bi-person"></i> <span th:text="${a.postedBy}">teacher</span> &nbsp;
+                            <i class="bi bi-clock"></i> <span th:text="${#temporals.format(a.createdAt, 'dd MMM yyyy, hh:mm a')}">date</span>
+                        </small>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Marks')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Marks')}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <!-- Average per subject -->
+            <section class="stats-grid">
+                <a class="stat-card clickable" th:each="sa : ${subjectAverages}"
+                   th:href="@{/teacher/marks(subjectId=${subjects[saStat.index].id})}">
+                    <div class="stat-icon blue"><i class="bi bi-journal-bookmark-fill"></i></div>
+                    <div>
+                        <p class="stat-label" th:text="${sa.subjectCode} + ' average'">avg</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(sa.marks, 1, 1)}">0</p>
+                    </div>
+                </a>
+            </section>
+
+            <div th:if="${selectedSubject == null}" class="card empty-state">
+                <i class="bi bi-book"></i>
+                <p>No subjects found.</p>
+            </div>
+
+            <div class="card" th:if="${selectedSubject != null}">
+                <div class="card-header wrap">
+                    <h3><i class="bi bi-journal-text"></i> Enter / Update Marks</h3>
+                    <form th:action="@{/teacher/marks}" method="get" class="inline-form">
+                        <label for="subjectId">Subject</label>
+                        <select id="subjectId" name="subjectId" onchange="this.form.submit()">
+                            <option th:each="sub : ${subjects}" th:value="${sub.id}"
+                                    th:selected="${sub.id == selectedSubject.id}"
+                                    th:text="${sub.code} + ' - ' + ${sub.name}">Subject</option>
+                        </select>
+                    </form>
+                </div>
+                <p class="muted">Marks are out of 100. Leave a box empty to skip a student. Class average:
+                    <strong th:text="${#numbers.formatDecimal(subjectAverage, 1, 1)}">0</strong></p>
+
+                <div th:if="${#lists.isEmpty(students)}" class="empty-state small"><p>No students yet.</p></div>
+
+                <form th:unless="${#lists.isEmpty(students)}" th:action="@{/teacher/marks/save}" method="post">
+                    <input type="hidden" name="subjectId" th:value="${selectedSubject.id}">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                            <tr><th>Student</th><th>Student ID</th><th>Current Marks</th><th>Grade</th><th>New Marks (0-100)</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="s : ${students}" th:with="m=${marksMap[s.id]}">
+                                <td>
+                                    <div class="person">
+                                        <span class="avatar small" th:text="${s.initials}">AB</span>
+                                        <strong th:text="${s.fullName}">Name</strong>
+                                    </div>
+                                </td>
+                                <td th:text="${s.studentId}">STU001</td>
+                                <td th:text="${m != null} ? ${m.marksObtained} : '—'">-</td>
+                                <td>
+                                    <span th:if="${m != null}" class="badge"
+                                          th:classappend="${m.passed} ? 'badge-success' : 'badge-danger'"
+                                          th:text="${m.grade}">A</span>
+                                    <span th:if="${m == null}" class="muted">Not entered</span>
+                                </td>
+                                <td>
+                                    <input type="number" class="marks-input" min="0" max="100" step="1"
+                                           th:name="'marks_' + ${s.id}"
+                                           th:value="${m != null} ? ${m.marksObtained} : ''"
+                                           placeholder="0-100">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save Marks</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

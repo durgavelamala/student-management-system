@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student Dashboard')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: studentSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Dashboard')}"></header>
+
+        <div class="content">
+            <!-- Welcome banner -->
+            <section class="welcome-banner">
+                <div>
+                    <h2>Welcome, <span th:text="${student.fullName}">Student</span> 👋</h2>
+                    <p>
+                        <span th:text="${student.studentId}">STU001</span> •
+                        <span th:text="${student.department}">Dept</span> •
+                        <span th:text="'Year ' + ${student.year}">Year</span>
+                    </p>
+                </div>
+                <span class="avatar large light" th:text="${student.initials}">AB</span>
+            </section>
+
+            <!-- Statistic cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-calendar-check-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Attendance</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(attendance.percentage, 1, 1)} + '%'">0%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div>
+                        <p class="stat-label">Average Marks</p>
+                        <p class="stat-value" th:text="${#numbers.formatDecimal(averageMarks, 1, 1)}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="bi bi-book-fill"></i></div>
+                    <div>
+                        <p class="stat-label">Subjects</p>
+                        <p class="stat-value" th:text="${#lists.size(performance)}">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="bi bi-check2-square"></i></div>
+                    <div>
+                        <p class="stat-label">Classes Attended</p>
+                        <p class="stat-value" th:text="${attendance.presentClasses} + '/' + ${attendance.totalClasses}">0/0</p>
+                    </div>
+                </div>
+            </section>
+
+            <div th:if="${attendance.low}" class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>Your attendance is below 75%. Please attend classes regularly.</span>
+            </div>
+
+            <section class="grid-2-1">
+                <div class="card">
+                    <div class="card-header"><h3><i class="bi bi-bar-chart-fill"></i> Subject-wise Performance</h3></div>
+                    <div class="chart-box"><canvas id="performanceChart"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-megaphone-fill"></i> Recent Announcements</h3>
+                        <a th:href="@{/student/announcements}" class="link">View all</a>
+                    </div>
+                    <div th:if="${#lists.isEmpty(recentAnnouncements)}" class="empty-state small">
+                        <i class="bi bi-inbox"></i><p>No announcements yet.</p>
+                    </div>
+                    <div class="announcement-item" th:each="a : ${recentAnnouncements}">
+                        <h4 th:text="${a.title}">Title</h4>
+                        <p th:text="${a.message}">Message</p>
+                        <small class="muted"><i class="bi bi-clock"></i>
+                            <span th:text="${#temporals.format(a.createdAt, 'dd MMM yyyy')}">date</span></small>
+                    </div>
+                </div>
+            </section>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="bi bi-table"></i> Marks &amp; Grades</h3>
+                    <a th:href="@{/student/marks}" class="link">Details</a>
+                </div>
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                        <tr><th>Subject</th><th>Marks</th><th>Grade</th><th>Attendance</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p : ${performance}">
+                            <td><strong th:text="${p.subjectCode}">CS</strong> <span class="muted" th:text="${p.subjectName}"></span></td>
+                            <td th:text="${p.marks != null} ? ${#numbers.formatDecimal(p.marks, 1, 0)} + ' / 100' : 'Not entered'">-</td>
+                            <td><span class="badge" th:classappend="${p.grade == 'F'} ? 'badge-danger' : 'badge-success'" th:text="${p.grade}">A</span></td>
+                            <td>
+                                <div class="progress"><div class="progress-bar" th:classappend="${p.attendancePercentage < 75} ? 'low'"
+                                     th:style="'width:' + ${p.attendancePercentage} + '%'"></div></div>
+                                <small th:text="${#numbers.formatDecimal(p.attendancePercentage, 1, 1)} + '%'">0%</small>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ [];
+    const marks = /*[[${chartMarks}]]*/ [];
+    const attendance = /*[[${chartAttendance}]]*/ [];
+
+    if (window.Chart) {
+        new Chart(document.getElementById('performanceChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Marks', data: marks, backgroundColor: '#2563eb', borderRadius: 6 },
+                    { label: 'Attendance %', data: attendance, backgroundColor: '#93c5fd', borderRadius: 6 }
+                ]
+            },
+            options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+</script>
+</body>
+</html>

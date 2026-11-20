@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editMode ? 'Edit Student' : 'Add Student'})}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar(${editMode ? 'Edit Student' : 'Add Student'})}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3 th:if="${editMode}"><i class="bi bi-pencil-square"></i> Edit Student</h3>
+                    <h3 th:unless="${editMode}"><i class="bi bi-person-plus-fill"></i> Add New Student</h3>
+                    <a th:href="@{/teacher/students}" class="link"><i class="bi bi-arrow-left"></i> Back to list</a>
+                </div>
+
+                <p class="muted" th:unless="${editMode}">
+                    A login account is created automatically: username = Student ID in lower case, password = <code>student123</code>.
+                </p>
+
+                <form th:action="${editMode} ? @{/teacher/students/{id}/update(id=${studentDbId})} : @{/teacher/students/save}"
+                      th:object="${student}" method="post" class="form" novalidate>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="studentId">Student ID *</label>
+                            <input type="text" id="studentId" th:field="*{studentId}" placeholder="e.g. STU007"
+                                   th:readonly="${editMode}" th:classappend="${#fields.hasErrors('studentId')} ? 'is-invalid'">
+                            <small class="hint" th:if="${editMode}">Student ID cannot be changed.</small>
+                            <small class="field-error" th:if="${#fields.hasErrors('studentId')}" th:errors="*{studentId}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fullName">Full Name *</label>
+                            <input type="text" id="fullName" th:field="*{fullName}" placeholder="e.g. Ravi Teja"
+                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
+                            <small class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" th:field="*{email}" placeholder="name@college.edu"
+                                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+                            <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="text" id="phone" th:field="*{phone}" placeholder="10 digit mobile number" maxlength="10"
+                                   th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                            <small class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="department">Department *</label>
+                            <select id="department" th:field="*{department}"
+                                    th:classappend="${#fields.hasErrors('department')} ? 'is-invalid'">
+                                <option value="">-- Select department --</option>
+                                <option th:each="d : ${departments}" th:value="${d}" th:text="${d}">Dept</option>
+                            </select>
+                            <small class="field-error" th:if="${#fields.hasErrors('department')}" th:errors="*{department}"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year">Year *</label>
+                            <select id="year" th:field="*{year}"
+                                    th:classappend="${#fields.hasErrors('year')} ? 'is-invalid'">
+                                <option value="">-- Select year --</option>
+                                <option th:each="y : ${#numbers.sequence(1, 4)}" th:value="${y}" th:text="'Year ' + ${y}">Year</option>
+                            </select>
+                            <small class="field-error" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a th:href="@{/teacher/students}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i>
+                            <span th:text="${editMode} ? 'Update Student' : 'Save Student'">Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

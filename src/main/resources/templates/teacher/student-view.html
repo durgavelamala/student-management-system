@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Student Details')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{fragments/layout :: teacherSidebar}"></aside>
+
+    <main class="main">
+        <header th:replace="~{fragments/layout :: topbar('Student Details')}"></header>
+
+        <div class="content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <a th:href="@{/teacher/students}" class="link back-link"><i class="bi bi-arrow-left"></i> Back to students</a>
+
+            <section class="grid-1-2">
+                <!-- Profile card -->
+                <div class="card profile-card">
+                    <span class="avatar large" th:text="${student.initials}">AB</span>
+                    <h2 th:text="${student.fullName}">Name</h2>
+                    <span class="badge badge-info" th:text="${student.studentId}">STU001</span>
+                    <ul class="detail-list">
+                        <li><i class="bi bi-envelope"></i> <span th:text="${student.email}">email</span></li>
+                        <li><i class="bi bi-telephone"></i> <span th:text="${student.phone}">phone</span></li>
+                        <li><i class="bi bi-building"></i> <span th:text="${student.department}">dept</span></li>
+                        <li><i class="bi bi-calendar3"></i> <span th:text="'Year ' + ${student.year}">year</span></li>
+                        <li th:if="${student.user != null}"><i class="bi bi-key"></i> Login: <code th:text="${student.user.username}">user</code></li>
+                    </ul>
+                    <div class="form-actions center">
+                        <a th:href="@{/teacher/students/{id}/edit(id=${student.id})}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Edit</a>
+                        <form th:action="@{/teacher/students/{id}/delete(id=${student.id})}" method="post"
+                              th:attr="data-confirm='Delete ' + ${student.fullName} + '?'">
+                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div>
+                    <section class="stats-grid two">
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="bi bi-calendar-check-fill"></i></div>
+                            <div>
+                                <p class="stat-label">Attendance</p>
+                                <p class="stat-value" th:text="${#numbers.formatDecimal(attendance.percentage, 1, 1)} + '%'">0%</p>
+                                <small class="muted" th:text="${attendance.presentClasses} + ' of ' + ${attendance.totalClasses} + ' classes'"></small>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="bi bi-graph-up-arrow"></i></div>
+                            <div>
+                                <p class="stat-label">Average Marks</p>
+                                <p class="stat-value" th:text="${#numbers.formatDecimal(averageMarks, 1, 1)}">0</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="card">
+                        <div class="card-header"><h3><i class="bi bi-table"></i> Subject-wise Performance</h3></div>
+                        <div class="table-wrapper">
+                            <table class="table">
+                                <thead>
+                                <tr><th>Subject</th><th>Marks</th><th>Grade</th><th>Attendance</th></tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="p : ${performance}">
+                                    <td><strong th:text="${p.subjectCode}">CS</strong> <span class="muted" th:text="${p.subjectName}"></span></td>
+                                    <td th:text="${p.marks != null} ? ${#numbers.formatDecimal(p.marks, 1, 0)} + ' / 100' : 'Not entered'">-</td>
+                                    <td><span class="badge" th:classappend="${p.grade == 'F'} ? 'badge-danger' : 'badge-success'" th:text="${p.grade}">A</span></td>
+                                    <td>
+                                        <div class="progress"><div class="progress-bar"
+                                             th:classappend="${p.attendancePercentage < 75} ? 'low'"
+                                             th:style="'width:' + ${p.attendancePercentage} + '%'"></div></div>
+                                        <small th:text="${#numbers.formatDecimal(p.attendancePercentage, 1, 1)} + '%'">0%</small>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
